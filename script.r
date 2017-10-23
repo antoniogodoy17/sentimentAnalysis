@@ -1,16 +1,21 @@
-install.packages("twitteR")
+#install.packages("twitteR")
 #install.packages("ROAuth")
-
+#yes1install.packages("base64enc")
+#install.packages("devtools")
+#devtools::install_version("httr", version="0.6.0", repos="http://cran.us.r-project.org")
 library(ROAuth)
 library(twitteR)
 library(base64enc)
 library(httr)
+library(devtools)
+#install.packages("httr", dependencies = TRUE)
+#devtools::install_version("httr", version="1.0.0", repos="http://cran.us.r-project.org")
 
-#Realizar autenticación con Twitter
-api_key = "lnSwUgN8bZbhcM7C9sHjHBzDE"
-api_secret = "btut6khdihDlCylopWvnJyQs8GMJr2KMt5L3UkSPEoqbQEAXMA"
-access_token = "919998032938012672-e3jqNBq4mWb9iO3T11V5M8vCkmUUlGW"
-access_token_secret = "Ek70jTOUkqRA2YN3BzKM1npBdsf4JL8bS1muXBjDNLqrB"
+#Realizar autenticaciÃ³n con Twitter
+api_key = "Y5fbQA5lJodmk0E4q4c1DYbXD"
+api_secret = "f4OQTcDmCg56EiHEaSZ7Zo3POHrEn2T0QHj0KbqBmZyRWmNkVL"
+access_token = "919998032938012672-6GP05oGCs1SZ6cwP9QwXw8VWulKDXDe"
+access_token_secret = "YWOmWI4B3UTzOeYMVyipwVtiQvzIqygfO2cN2ySd1RZk4"
 request_url = 'https://api.twitter.com/oauth/request_token'
 access_url = 'https://api.twitter.com/oauth/access_token'
 auth_url = 'https://api.twitter.com/oauth/authorize'
@@ -18,11 +23,12 @@ auth_url = 'https://api.twitter.com/oauth/authorize'
 setup_twitter_oauth(api_key,api_secret,access_token,access_token_secret)
 
 credential = OAuthFactory$new(consumerKey=api_key,
-                        consumerSecret=api_secret,
-                        requestURL=request_url,
-                        accessURL=access_url,
-                        authURL=auth_url)
+                              consumerSecret=api_secret,
+                              requestURL=request_url,
+                              accessURL=access_url,
+                              authURL=auth_url)
 
 credential$handshake(cainfo = system.file("CurlSSL","cacert.pem",package ="RCurl"))
 
-x = searchTwitter('real madrid')
+x = searchTwitter("Barcelona",n=10,lang="en")
+x
