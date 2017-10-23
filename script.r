@@ -2,12 +2,16 @@
 #install.packages("ROAuth")
 #yes1install.packages("base64enc")
 #install.packages("devtools")
+install.packages("tm")
+install.packages("wordcloud")
 #devtools::install_version("httr", version="0.6.0", repos="http://cran.us.r-project.org")
 library(ROAuth)
 library(twitteR)
 library(base64enc)
 library(httr)
 library(devtools)
+library(tm)
+library(wordcloud)
 #install.packages("httr", dependencies = TRUE)
 #devtools::install_version("httr", version="1.0.0", repos="http://cran.us.r-project.org")
 
@@ -30,5 +34,16 @@ credential = OAuthFactory$new(consumerKey=api_key,
 
 credential$handshake(cainfo = system.file("CurlSSL","cacert.pem",package ="RCurl"))
 
-x = searchTwitter("Barcelona",n=10,lang="en")
+x = searchTwitter("Barcelona",n=20000,lang="en",resultType = "recent")
 x
+#Convert list to vector
+tweet = sapply(x, function(x) x$getText())
+
+tweetCorpus = Corpus(VectorSource(tweet))
+inspect(tweetCorpus[1])
+#Remove Capital words
+tweetsClean = tm_map(tweetCorpus,content_transformer(tolower))
+inspect(tweetsClean[1])
+#Remove punctuations
+tweetsClean = tm_map(tweetsClean,removePunctuation)
+
