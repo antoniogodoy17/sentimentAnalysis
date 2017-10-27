@@ -1,10 +1,10 @@
-packages = c("ROAuth","twitteR","base64enc","httr","devtools","tm","wordcloud")
-for(lib in packages){
-  if(!require(lib)){
-    install.packages(lib)
-  }
-}
-lapply(packages, library, character.only=TRUE)
+# packages = c("ROAuth","twitteR","base64enc","httr","devtools","tm","wordcloud")
+# for(lib in packages){
+#   if(!require(lib)){
+#     install.packages(lib)
+#   }
+# }
+# lapply(packages, library, character.only=TRUE)
 
 #install.packages("twitteR")
 #install.packages("ROAuth")
@@ -14,18 +14,18 @@ lapply(packages, library, character.only=TRUE)
 # install.packages("wordcloud")
 #devtools::install_version("httr", version="0.6.0", repos="http://cran.us.r-project.org")
 
-# library(ROAuth)
-# library(twitteR)
-# library(base64enc)
-# library(httr)
-# library(devtools)
-# library(tm)
-# library(wordcloud)
+library(ROAuth)
+library(twitteR)
+library(base64enc)
+library(httr)
+library(devtools)
+library(tm)
+library(wordcloud)
 
 #install.packages("httr", dependencies = TRUE)
 #devtools::install_version("httr", version="1.0.0", repos="http://cran.us.r-project.org")
 
-#Realizar autenticación con Twitter
+#Realizar autenticaciÃ³n con Twitter
 api_key = "Y5fbQA5lJodmk0E4q4c1DYbXD"
 api_secret = "f4OQTcDmCg56EiHEaSZ7Zo3POHrEn2T0QHj0KbqBmZyRWmNkVL"
 access_token = "919998032938012672-6GP05oGCs1SZ6cwP9QwXw8VWulKDXDe"
@@ -34,7 +34,7 @@ request_url = 'https://api.twitter.com/oauth/request_token'
 access_url = 'https://api.twitter.com/oauth/access_token'
 auth_url = 'https://api.twitter.com/oauth/authorize'
 
-#Realizar autenticación de la app
+#Realizar autenticaciÃ³n de la app
 setup_twitter_oauth(api_key,api_secret,access_token,access_token_secret)
 
 #Obtener credencial
@@ -47,8 +47,9 @@ credential = OAuthFactory$new(consumerKey=api_key,
 #Autorizar credencial de la app
 credential$handshake(cainfo = system.file("CurlSSL","cacert.pem",package ="RCurl"))
 
+
 #Buscar y extraer tweets
-x = searchTwitter("trump",n=100,lang="en",resultType = "recent")
+x= searchTwitter("trump",n=500,lang="en",resultType = "recent")
 x
 
 #Convertir lista a vector
@@ -58,9 +59,29 @@ tweet = sapply(x, function(x) x$getText())
 tweetCorpus = Corpus(VectorSource(tweet))
 inspect(tweetCorpus[1])
 
-#Quitar signos de puntuación
+#Quitar signos de puntuaciÃ³n
 tweetsClean = tm_map(tweetCorpus,removePunctuation)
+inspect(tweetsClean[1])
 
-#Transformar todo a minúsculas
+# tweetsClean = iconv(tweetsClean,"UTF-8", "ASCII", sub = "")
+inspect(tweetsClean[1])
+#Transformar todo a minÃºsculas
 tweetsClean = tm_map(tweetsClean,content_transformer(tolower))
 inspect(tweetsClean[1])
+
+tweetsClean = tm_map(tweetsClean,removeWords, stopwords("en"))
+inspect(tweetsClean[1])
+
+tweetsClean = tm_map(tweetsClean, removeNumbers)
+inspect(tweetsClean[1])
+
+tweetsClean = tm_map(tweetsClean , stripWhitespace)
+inspect(tweetsClean[1])
+
+
+
+tweetsClean = tm_map(tweetsClean , removeWords,"trump")
+
+wordcloud(tweetsClean,random.order = FALSE, max.words = 40, scale = c(3,0.5), colors = rainbow(50))
+
+
