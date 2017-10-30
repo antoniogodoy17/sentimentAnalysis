@@ -1,3 +1,4 @@
+#Instalar/cargar librerias
 # packages = c("ROAuth","twitteR","base64enc","httr","devtools","tm","wordcloud")
 # for(lib in packages){
 #   if(!require(lib)){
@@ -5,15 +6,6 @@
 #   }
 # }
 # lapply(packages, library, character.only=TRUE)
-
-#install.packages("twitteR")
-#install.packages("ROAuth")
-#yes1install.packages("base64enc")
-#install.packages("devtools")
-# install.packages("tm")
-# install.packages("wordcloud")
-#devtools::install_version("httr", version="0.6.0", repos="http://cran.us.r-project.org")
-
 library(ROAuth)
 library(twitteR)
 library(base64enc)
@@ -22,10 +14,7 @@ library(devtools)
 library(tm)
 library(wordcloud)
 
-#install.packages("httr", dependencies = TRUE)
-#devtools::install_version("httr", version="1.0.0", repos="http://cran.us.r-project.org")
-
-#Realizar autenticaciÃ³n con Twitter
+#Realizar autenticación con Twitter
 api_key = "Y5fbQA5lJodmk0E4q4c1DYbXD"
 api_secret = "f4OQTcDmCg56EiHEaSZ7Zo3POHrEn2T0QHj0KbqBmZyRWmNkVL"
 access_token = "919998032938012672-6GP05oGCs1SZ6cwP9QwXw8VWulKDXDe"
@@ -34,7 +23,7 @@ request_url = 'https://api.twitter.com/oauth/request_token'
 access_url = 'https://api.twitter.com/oauth/access_token'
 auth_url = 'https://api.twitter.com/oauth/authorize'
 
-#Realizar autenticaciÃ³n de la app
+#Realizar autenticación de la app
 setup_twitter_oauth(api_key,api_secret,access_token,access_token_secret)
 
 #Obtener credencial
@@ -47,41 +36,49 @@ credential = OAuthFactory$new(consumerKey=api_key,
 #Autorizar credencial de la app
 credential$handshake(cainfo = system.file("CurlSSL","cacert.pem",package ="RCurl"))
 
-
 #Buscar y extraer tweets
-x= searchTwitter("trump",n=500,lang="en",resultType = "recent")
-x
+x = searchTwitter("Trump",n=5000,lang="en")
+
+#Eliminar emoticones/carácteres extraños
+tweets = sapply(x$text,function(row) iconv(row, "latin1", "ASCII", sub=""))
 
 #Convertir lista a vector
-tweet = sapply(x, function(x) x$getText())
+tweets = sapply(x, function(x) x$getText())
 
-#Trasnformar a corpus
-tweetCorpus = Corpus(VectorSource(tweet))
+#Transformar a corpus (lista de documentos de texto)
+tweetCorpus = Corpus(VectorSource(tweets))
 inspect(tweetCorpus[1])
 
-#Quitar signos de puntuaciÃ³n
-tweetsClean = tm_map(tweetCorpus,removePunctuation)
+#Eliminar enlaces: elimina una cadena de texto que comience con "http" seguida por cualquier caractér sin espacios
+tweetsClean = tm_map(tweetCorpus, function(x) gsub("http[^[:space:]]*", "", x))
+inspect(tweetsClean[1]) 
+
+#Elimina signos de puntuación
+tweetsClean = tm_map(tweetsClean,removePunctuation)
 inspect(tweetsClean[1])
 
-# tweetsClean = iconv(tweetsClean,"UTF-8", "ASCII", sub = "")
-inspect(tweetsClean[1])
-#Transformar todo a minÃºsculas
+#Transformar todo a minúsculas
 tweetsClean = tm_map(tweetsClean,content_transformer(tolower))
 inspect(tweetsClean[1])
 
-tweetsClean = tm_map(tweetsClean,removeWords, stopwords("en"))
-inspect(tweetsClean[1])
+#Eliminar palabras innecesarias
+tweetsClean = tm_map(tweetsClean,removeWords, c(stopwords("english"),"\n","rt")) 
+inspect(tweetsClean[1]) 
 
-tweetsClean = tm_map(tweetsClean, removeNumbers)
-inspect(tweetsClean[1])
+#Eliminar números
+tweetsClean = tm_map(tweetsClean, removeNumbers) 
+inspect(tweetsClean[1]) 
 
-tweetsClean = tm_map(tweetsClean , stripWhitespace)
-inspect(tweetsClean[1])
+#Eliminar la(s) palabra(s) buscada(s)
+palabrasBuscadas = c("donald", "trump")
+for (palabra in palabrasBuscadas){
+  tweetsClean = tm_map(tweetsClean, removeWords, palabra) 
+}
+inspect(tweetsClean[1]) 
 
+#Eliminar espacios en blanco extras
+tweetsClean = tm_map(tweetsClean, stripWhitespace) 
+inspect(tweetsClean[1]) 
 
-
-tweetsClean = tm_map(tweetsClean , removeWords,"trump")
-
-wordcloud(tweetsClean,random.order = FALSE, max.words = 40, scale = c(3,0.5), colors = rainbow(50))
-
-
+#Generar la nube de palabras
+wordcloud(tweetsClean,random.order = FALSE, max.words = 50, scale = c(3,0.25)) 
