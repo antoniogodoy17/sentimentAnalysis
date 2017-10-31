@@ -38,7 +38,7 @@ credential = OAuthFactory$new(consumerKey = api_key,
 credential$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package ="RCurl"))
 
 #Buscar y extraer tweets
-tweets = searchTwitter("iPhone X", n=1000, lang="es")
+tweets = searchTwitter("iPhone X", n=1000, lang="en")
 
 #Convertir la lista de tweets a dataframe
 tweets.df = twListToDF(tweets)
