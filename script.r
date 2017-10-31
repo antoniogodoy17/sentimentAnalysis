@@ -38,48 +38,98 @@ credential = OAuthFactory$new(consumerKey = api_key,
 credential$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package ="RCurl"))
 
 #Buscar y extraer tweets
-x = searchTwitter("Trump", n=5000, lang="en")
+tweets = searchTwitter("iPhone X", n=1000, lang="es")
 
-#Eliminar emoticones/carácteres extraños
-tweets = sapply(x$text, function(row) iconv(row, "latin1", "ASCII", sub=""))
+#Convertir la lista de tweets a dataframe
+tweets.df = twListToDF(tweets)
 
-#Convertir lista a vector
-tweets = sapply(x, function(x) x$getText())
+tweets.df$text = sapply(tweets.df$text,function(row) iconv(row, "latin1", "ASCII", sub=""))
+tweets.df$text = gsub("(f|ht)tp(s?)://(.*)[.][a-z]+", "", tweets.df$text)
 
-#Transformar a corpus (lista de documentos de texto)
-tweetCorpus = Corpus(VectorSource(tweets))
-inspect(tweetCorpus[1])
+#Almacenar solo la parte textual de los tweets
+tweetsText = tweets.df$text
 
-#Eliminar enlaces: elimina una cadena de texto que comience con "http" seguida por cualquier caractér sin espacios
-tweetsClean = tm_map(tweetCorpus, function(x) gsub("http[^[:space:]]*", "", x))
-inspect(tweetsClean[1]) 
+#Convertir a Corpus (lista de documentos de texto) el vector de caracteres
+tweetsCorpus = Corpus(VectorSource(tweetsText))
+
+#Eliminar enlaces que comiencen con "http" 
+tweetsClean = tm_map(tweetsCorpus, function(x) gsub("http[^[:space:]]*", "", x))
+
+#Eliminar caracteres
+tweetsClean = tm_map(tweetsClean, function(x) gsub("\xed[^[:space:]]*", "", x))
+
+#Eliminar otros enlaces raros que comiencen con "/"
+tweetsClean = tm_map(tweetsClean, function(x) gsub("/[^[:space:]]*", "", x))
+
+#Eliminar símbolos raros
+tweetsClean = tm_map(tweetsClean, removeWords, c('í', '½')) 
+
+#Eliminar usuarios (@usuarioX)
+tweetsClean = tm_map(tweetsClean, function(x) gsub("@[^[:space:]]*", "", x))
 
 #Elimina signos de puntuación
 tweetsClean = tm_map(tweetsClean, removePunctuation)
-inspect(tweetsClean[1])
 
 #Transformar todo a minúsculas
 tweetsClean = tm_map(tweetsClean, content_transformer(tolower))
-inspect(tweetsClean[1])
 
-#Eliminar palabras innecesarias
+#Eliminar palabras innecesarias, saltos de línea y rt's.
 tweetsClean = tm_map(tweetsClean, removeWords, c(stopwords("english"),"\n","rt")) 
-inspect(tweetsClean[1]) 
 
 #Eliminar números
 tweetsClean = tm_map(tweetsClean, removeNumbers) 
-inspect(tweetsClean[1]) 
 
-#Eliminar la(s) palabra(s) buscada(s)
-palabrasBuscadas = c("donald", "trump")
+#Eliminar la(s) palabra(s) buscada(s) o fuertemente relacionadas con la búsqueda
+palabrasBuscadas = c("iphone x", "iphone", "apple","iphonex")
 for (palabra in palabrasBuscadas){
   tweetsClean = tm_map(tweetsClean, removeWords, palabra) 
 }
-inspect(tweetsClean[1]) 
 
 #Eliminar espacios en blanco extras
-tweetsClean = tm_map(tweetsClean, stripWhitespace) 
-inspect(tweetsClean[1]) 
+tweetsClean = tm_map(tweetsClean, stripWhitespace)
 
 #Generar la nube de palabras
-wordcloud(tweetsClean, random.order = FALSE, max.words = 50, scale = c(3,0.25))
+wordcloud(tweetsClean, random.order = FALSE, max.words = 100, scale = c(4,0.25), col=rainbow(25))
+
+######################################################################################################
+
+#Eliminar emoticones/carácteres extraños
+# tweets = sapply(x$text, function(row) iconv(row, "UTF-8", "ASCII", sub=""))
+
+#Convertir lista a vector
+# tweets = sapply(x, function(x) x$getText())
+
+#Transformar a corpus (lista de documentos de texto)
+# tweetCorpus = Corpus(VectorSource(tweets))
+
+#Eliminar caracteres
+# tweetsClean = tm_map(tweetCorpus, function(x) gsub("\xed[^[:space:]]*", "", x))
+
+#Eliminar enlaces: elimina una cadena de texto que comience con "http" seguida por cualquier caractér sin espacios
+# tweetsClean = tm_map(tweetCorpus, function(x) gsub("http[^[:space:]]*", "", x))
+
+# tweetsClean = tm_map(tweetsClean, removeWords, c('í', '½')) 
+
+#Elimina signos de puntuación
+# tweetsClean = tm_map(tweetsClean, removePunctuation)
+
+#Transformar todo a minúsculas
+# tweetsClean = tm_map(tweetsClean, content_transformer(toupper))
+
+#Eliminar palabras innecesarias
+# tweetsClean = tm_map(tweetsClean, removeWords, c(stopwords("english"),"\n","rt")) 
+
+#Eliminar números
+# tweetsClean = tm_map(tweetsClean, removeNumbers) 
+
+#Eliminar la(s) palabra(s) buscada(s)
+# palabrasBuscadas = c("iPhone X", "iphone", "iPhone", "Iphone", "Apple")
+# for (palabra in palabrasBuscadas){
+#   tweetsClean = tm_map(tweetsClean, removeWords, palabra) 
+# }
+
+#Eliminar espacios en blanco extras
+# tweetsClean = tm_map(tweetsClean, stripWhitespace) 
+
+#Generar la nube de palabras
+# wordcloud(sample, random.order = FALSE, max.words = 50, scale = c(3,0.5))
