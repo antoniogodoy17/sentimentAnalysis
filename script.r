@@ -41,10 +41,12 @@ credential$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package ="RCu
 #Buscar y extraer tweets
 iphoneTweets = searchTwitter("iPhone X", n=5000, lang="en", since = "2017-06-01")
 noteTweets = searchTwitter("Galaxy Note 8", n=5000, lang="en", since = "2017-06-01")
+pixelTweets = searchTwitter("Google+Pixel 2", n=5000, lang="en", since = "2017-06-01")
 
 #Convertir la lista de tweets a dataframe
 iphoneTweets.df = twListToDF(iphoneTweets)
 noteTweets.df = twListToDF(noteTweets)
+pixelTweets.df = twListToDF(pixelTweets)
 
 #---------------------------------LIMPIEZA DE TWEETS---------------------------------#
 #Crear función para depurar los tweets
@@ -86,7 +88,10 @@ Clean = function(tweetsList){
   tweetsClean = tm_map(tweetsClean, removeNumbers) 
   
   #Eliminar la(s) palabra(s) buscada(s) o fuertemente relacionadas con la búsqueda
-  searchedWords = c("iphone x", "iphonex", "iphone", "apple","ios","galaxy","galaxynote","note","note 8","samsung","android","phone","smartphone","cellphone","giveaway","international")
+  searchedWords = c("iphone x", "iphonex", "iphone", "apple","ios","galaxy","galaxynote",
+                    "note","note 8","samsung","android","google","pixel","pixel 2",
+                    "pixel2","phone","smartphone","cellphone","giveaway","international")
+  
   for (word in searchedWords){
     tweetsClean = tm_map(tweetsClean, removeWords, word) 
   }
@@ -99,11 +104,13 @@ Clean = function(tweetsList){
 
 iphoneTweetsClean = Clean(iphoneTweets.df)
 noteTweetsClean = Clean(noteTweets.df)
+pixelTweetsClean = Clean(pixelTweets.df)
 
 #---------------------------------NUBE DE PALABRAS---------------------------------#
 #Generar la nube de palabras
-iphoneWordcloud = wordcloud(iphoneTweetsClean, random.order = FALSE, min.freq = 20, max.words = Inf, scale = c(2,0.25), rot.per=.1, col=brewer.pal(10,"Paired"))
-noteWordcloud = wordcloud(noteTweetsClean, random.order = FALSE, min.freq = 20, max.words = Inf, scale = c(2,0.25), rot.per=.1, col=brewer.pal(10,"Paired"))
+iphoneWordCloud = wordcloud(iphoneTweetsClean, random.order = FALSE, min.freq = 15, max.words = Inf, scale = c(2,0.25), rot.per=.1, col=brewer.pal(10,"Paired"))
+noteWordcloud = wordcloud(noteTweetsClean, random.order = FALSE, min.freq = 15, max.words = Inf, scale = c(2,0.25), rot.per=.1, col=brewer.pal(10,"Paired"))
+pixelWordCloud = wordcloud(pixelTweetsClean, random.order = FALSE, min.freq = 15, max.words = Inf, scale = c(2,0.25), rot.per=.1, col=brewer.pal(10,"Paired"))
 
 #----------------------ADJUNTAR CONJUNTO DE DATOS DE PALABRAS----------------------#
 #Almacenar en posWords la lista de palabras positivas ignorando la sección comentada
@@ -111,3 +118,24 @@ posWords = scan('./posWords.txt', what='character', comment.char = ';')
 
 #Almacenar en negWords la lista de palabras negativas ignorando la sección comentada
 negWords = scan('./negWords.txt', what='character', comment.char = ';')
+
+#------------------------MAPEO DE SENTIMIENTOS A PALABRAS--------------------------#
+#Mapeo de palabras positivas
+iphonePosWords.match = match(posWords,iphoneTweetsClean)
+notePosWords.match = match(posWords,noteTweetsClean)
+pixelPosWords.match = match(posWords,pixelTweetsClean)
+
+#Verifica que elementos no son nulos
+iphonePosWords.match = !is.na(iphonePosWords.match)
+notePosWords.match = !is.na(notePosWords.match)
+pixelPosWords.match = !is.na(pixelPosWords.match)
+
+#Mapeo de palabras Negativas
+iphoneNegWords.match = match(negWords,iphoneTweetsClean)
+noteNegWords.match = match(negWords,noteTweetsClean)
+pixelNegWords.match = match(negWords,noteTweetsClean)
+
+#Verifica que elementos no son nulos
+iphoneNegWords.match = !is.na(iphoneNegWords.match)
+noteNegWords.match = !is.na(noteNegWords.match)
+pixelNegWords.match = !is.na(pixelNegWords.match)
