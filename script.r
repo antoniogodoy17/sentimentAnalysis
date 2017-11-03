@@ -1,18 +1,18 @@
 #-------------------------------INSTALAR/CARGAR LIBRERIAS-------------------------------#
-# packages = c("ROAuth","twitteR","base64enc","httr","devtools","tm","wordcloud")
-# for(lib in packages){
-#   if(!require(lib)){
-#     install.packages(lib)
-#   }
-# }
-# lapply(packages, library, character.only=TRUE)
-library(ROAuth)
-library(twitteR)
-library(base64enc)
-library(httr)
-library(devtools)
-library(tm)
-library(wordcloud)
+packages = c("ROAuth","twitteR","base64enc","httr","devtools","tm","wordcloud","RColorBrewer")
+for(lib in packages){
+  if(!require(lib)){
+    install.packages(lib)
+  }
+}
+lapply(packages, library, character.only=TRUE)
+# library(ROAuth) 
+# library(twitteR)
+# library(base64enc)
+# library(httr)
+# library(devtools)
+# library(tm)
+# library(wordcloud)
 
 #-------------------------------AUTENTICACIÓN DE TWITTER-------------------------------#
 #Realizar autenticación con Twitter
@@ -35,61 +35,78 @@ credential = OAuthFactory$new(consumerKey = api_key,
                               authURL = auth_url)
 
 #Autorizar credencial de la app
-credential$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package ="RCurl"))
 
 #--------------------------------EXTRACCIÓN DE TWEETS--------------------------------#
 #Buscar y extraer tweets
-tweets = searchTwitter("iPhone X", n=10000, lang="en")
+iphoneTweets = searchTwitter("iPhone X", n=5000, lang="en", since = "2017-06-01")
+noteTweets = searchTwitter("Galaxy Note 8", n=5000, lang="en", since = "2017-06-01")
+
+#Convertir la lista de tweets a dataframe
+iphoneTweets.df = twListToDF(iphoneTweets)
+noteTweets.df = twListToDF(noteTweets)
 
 #---------------------------------LIMPIEZA DE TWEETS---------------------------------#
-#Convertir la lista de tweets a dataframe
-tweets.df = twListToDF(tweets)
+#Crear función para depurar los tweets
+Clean = function(tweetsList){
+  
+  tweetsList$text = sapply(tweetsList$text,function(row) iconv(row, "latin1", "ASCII", sub=""))
+  
+  #Eliminar cualquier tipo de caracter no manejable por r
+  tweetsList$text = gsub("(f|ht)tp(s?)://(.*)[.][a-z]+", "", tweetsList$text)
+  
+  #Almacenar solo la parte textual de los tweets
+  tweetsText = tweetsList$text
+  
+  #Convertir a Corpus (lista de documentos de texto) el vector de caracteres
+  tweetsCorpus = Corpus(VectorSource(tweetsText))
+  
+  #Eliminar enlaces que comiencen con "http"
+  tweetsClean = tm_map(tweetsCorpus, function(tweet) gsub("http[^[:space:]]*", "", tweet))
 
-tweets.df$text = sapply(tweets.df$text,function(row) iconv(row, "latin1", "ASCII", sub=""))
-tweets.df$text = gsub("(f|ht)tp(s?)://(.*)[.][a-z]+", "", tweets.df$text)
+  #Eliminar caracteres
+  tweetsClean = tm_map(tweetsClean, function(tweet) gsub("\xed[^[:space:]]*", "", tweet))
 
-#Almacenar solo la parte textual de los tweets
-tweetsText = tweets.df$text
+  #Eliminar otros enlaces raros que comiencen con "/"
+  tweetsClean = tm_map(tweetsClean, function(tweet) gsub("/[^[:space:]]*", "", tweet))
 
-#Convertir a Corpus (lista de documentos de texto) el vector de caracteres
-tweetsCorpus = Corpus(VectorSource(tweetsText))
+  #Eliminar usuarios (@usuarioX)
+  tweetsClean = tm_map(tweetsClean, function(tweet) gsub("@[^[:space:]]*", "", tweet))
 
-#Eliminar enlaces que comiencen con "http" 
-tweetsClean = tm_map(tweetsCorpus, function(x) gsub("http[^[:space:]]*", "", x))
-
-#Eliminar caracteres
-tweetsClean = tm_map(tweetsClean, function(x) gsub("\xed[^[:space:]]*", "", x))
-
-#Eliminar otros enlaces raros que comiencen con "/"
-tweetsClean = tm_map(tweetsClean, function(x) gsub("/[^[:space:]]*", "", x))
-
-#Eliminar símbolos raros
-tweetsClean = tm_map(tweetsClean, removeWords, c('í', '½')) 
-
-#Eliminar usuarios (@usuarioX)
-tweetsClean = tm_map(tweetsClean, function(x) gsub("@[^[:space:]]*", "", x))
-
-#Elimina signos de puntuación
-tweetsClean = tm_map(tweetsClean, removePunctuation)
-
-#Transformar todo a minúsculas
-tweetsClean = tm_map(tweetsClean, content_transformer(tolower))
-
-#Eliminar palabras innecesarias, saltos de línea y rt's.
-tweetsClean = tm_map(tweetsClean, removeWords, c(stopwords("english"),"\n","rt")) 
-
-#Eliminar números
-tweetsClean = tm_map(tweetsClean, removeNumbers) 
-
-#Eliminar la(s) palabra(s) buscada(s) o fuertemente relacionadas con la búsqueda
-palabrasBuscadas = c("iphone x", "iphone", "apple","iphonex")
-for (palabra in palabrasBuscadas){
-  tweetsClean = tm_map(tweetsClean, removeWords, palabra) 
+  #Elimina signos de puntuación
+  tweetsCorpusn = tm_map(tweetsClean, removePunctuation)
+  
+  #Transformar todo a minúsculas
+  tweetsClean = tm_map(tweetsClean, content_transformer(tolower))
+  
+  #Eliminar palabras innecesarias, saltos de línea y rt's.
+  tweetsClean = tm_map(tweetsClean, removeWords, c(stopwords("english"),"\n","rt")) 
+  
+  #Eliminar números
+  tweetsClean = tm_map(tweetsClean, removeNumbers) 
+  
+  #Eliminar la(s) palabra(s) buscada(s) o fuertemente relacionadas con la búsqueda
+  searchedWords = c("iphone x", "iphonex", "iphone", "apple","ios","galaxy","galaxynote","note","note 8","samsung","android","phone","smartphone","cellphone","giveaway","international")
+  for (word in searchedWords){
+    tweetsClean = tm_map(tweetsClean, removeWords, word) 
+  }
+  
+  #Eliminar espacios en blanco extras
+  tweetsClean = tm_map(tweetsClean, stripWhitespace)
+  
+  return(tweetsClean)
 }
 
-#Eliminar espacios en blanco extras
-tweetsClean = tm_map(tweetsClean, stripWhitespace)
+iphoneTweetsClean = Clean(iphoneTweets.df)
+noteTweetsClean = Clean(noteTweets.df)
 
 #---------------------------------NUBE DE PALABRAS---------------------------------#
 #Generar la nube de palabras
-wordcloud(tweetsClean, random.order = FALSE, max.words = 100, scale = c(4,0.25), col=rainbow(25))
+iphoneWordcloud = wordcloud(iphoneTweetsClean, random.order = FALSE, min.freq = 20, max.words = Inf, scale = c(2,0.25), rot.per=.1, col=brewer.pal(10,"Paired"))
+noteWordcloud = wordcloud(noteTweetsClean, random.order = FALSE, min.freq = 20, max.words = Inf, scale = c(2,0.25), rot.per=.1, col=brewer.pal(10,"Paired"))
+
+#----------------------ADJUNTAR CONJUNTO DE DATOS DE PALABRAS----------------------#
+#Almacenar en posWords la lista de palabras positivas ignorando la sección comentada
+posWords = scan('./posWords.txt', what='character', comment.char = ';')
+
+#Almacenar en negWords la lista de palabras negativas ignorando la sección comentada
+negWords = scan('./negWords.txt', what='character', comment.char = ';')
