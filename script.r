@@ -35,6 +35,7 @@ credential = OAuthFactory$new(consumerKey = api_key,
                               authURL = auth_url)
 
 #Autorizar credencial de la app
+credential$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package ="RCurl")) 
 
 #--------------------------------EXTRACCIÓN DE TWEETS--------------------------------#
 #Buscar y extraer tweets
