@@ -88,14 +88,12 @@ Clean = function(tweetsList){
   tweetsClean = tm_map(tweetsClean, removeNumbers) 
   
   #Eliminar la(s) palabra(s) buscada(s) o fuertemente relacionadas con la búsqueda
-  searchedWords = c("iphone x", "iphonex", "iphone", "apple","ios","galaxy","galaxynote",
+  searchedWords = c("iphone x","iphonex","iphone","apple","ios","galaxy","galaxynote",
                     "note","note 8","samsung","android","google","pixel","pixel 2",
-                    "pixel2","phone","smartphone","cellphone","giveaway","international")
-  
-  for (word in searchedWords){
-    tweetsClean = tm_map(tweetsClean, removeWords, word) 
-  }
-  
+                    "pixel2","phone","smartphone","cellphone","giveaway","international","tweet")
+
+  tweetsClean = tm_map(tweetsClean, removeWords, searchedWords) 
+
   #Eliminar espacios en blanco extras
   tweetsClean = tm_map(tweetsClean, stripWhitespace)
   
