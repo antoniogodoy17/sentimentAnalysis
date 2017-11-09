@@ -76,7 +76,7 @@ Clean = function(tweetsList){
   tweetsClean = tm_map(tweetsClean, function(tweet) gsub("@[^[:space:]]*", "", tweet))
 
   #Elimina signos de puntuación
-  tweetsCorpusn = tm_map(tweetsClean, removePunctuation)
+  tweetsClean = tm_map(tweetsClean, removePunctuation)
   
   #Transformar todo a minúsculas
   tweetsClean = tm_map(tweetsClean, content_transformer(tolower))
@@ -119,6 +119,7 @@ negWords = scan('./negWords.txt', what='character', comment.char = ';')
 
 #------------------------MAPEO DE SENTIMIENTOS A PALABRAS--------------------------#
 #Mapeo de palabras positivas
+
 iphonePosWords.match = match(posWords,iphoneTweetsClean)
 notePosWords.match = match(posWords,noteTweetsClean)
 pixelPosWords.match = match(posWords,pixelTweetsClean)
@@ -137,3 +138,23 @@ pixelNegWords.match = match(negWords,noteTweetsClean)
 iphoneNegWords.match = !is.na(iphoneNegWords.match)
 noteNegWords.match = !is.na(noteNegWords.match)
 pixelNegWords.match = !is.na(pixelNegWords.match)
+
+#Puntuación de twets
+# list.score = function(tweetsList, posWords, negWords){
+#   
+# }
+tweet.score = function(tweet, posWords, negWords ){
+  text = strsplit(tweet,' ')
+  words = unlist(text)
+  pos.match  = match(words, posWords)
+  pos.match = !is.na(pos.match)
+  neg.match = match(words,negWords)
+  neg.match = !is.na(neg.match)
+  score = sum(pos.match) - sum(neg.match)
+  # tweet.df = list(tweet,pos.match,neg.match,score)
+  # print(tweet.df[tweet]$score)
+  #return(score)
+}
+
+x = lapply(iphoneTweetsClean, function(tweet) tweet.score(tweet, posWords , negWords))
+
