@@ -1,16 +1,26 @@
-#-------------------------------INSTALAR/CARGAR LIBRERIAS-------------------------------#
-packages = c("ROAuth","twitteR","base64enc","httr","devtools","tm","wordcloud","RColorBrewer","sentiment")
-for(lib in packages){
-  if(!require(lib)){
-    install.packages(lib)
-  }
-}
-lapply(packages, library, character.only=TRUE)
-install.packages("RTextTools")
-#install_github('sentiment140', 'okugami79')
+#----------------------------------INSTALAR LIBRERIAS----------------------------------#
+#Correr unicamente la primera vez
+# install.packages("ROAuth")
+# install.packages("twitteR")
+# install.packages("base64enc")
+# install.packages("httr")
+# install.packages("devtools")
+# install.packages("tm")
+# install.packages("wordcloud")
+# install.packages("RColorBrewer")
+# install.packages("RTextTools")
+# ggplot no disponible para la versión 3.4.3 de R
 
-#Instalar librería de sentiment
-install_github('okugami79/sentiment140') #<- usar este
+#-----------------------------------CARGAR LIBRERIAS-----------------------------------#
+library(ROAuth)
+library(twitteR)
+library(base64enc)
+library(httr)
+library(devtools)
+library(tm)
+library(wordcloud)
+library(RColorBrewer)
+library(RTextTools)
 
 #Sentiment Palabras
 # https://cran.r-project.org/src/contrib/Archive/sentiment/
@@ -18,16 +28,6 @@ install_github('okugami79/sentiment140') #<- usar este
 
 # interface to the C code that implements Porter's word stemming algorithm for collapsing words to a common root to aid comparison of texts. There 
 # install_url('http://cran.r-project.org/src/contrib/Archive/Rstem/Rstem_0.4-1.tar.gz')
-
-
-# library(sentiment)
-# library(ROAuth) 
-# library(twitteR)
-# library(base64enc)
-# library(httr)
-# library(devtools)
-# library(tm)
-# library(wordcloud)
 
 #-------------------------------AUTENTICACIÓN DE TWITTER-------------------------------#
 #Realizar autenticación con Twitter
@@ -132,6 +132,7 @@ posWords = scan('./posWords.txt', what='character', comment.char = ';')
 #Almacenar en negWords la lista de palabras negativas ignorando la sección comentada
 negWords = scan('./negWords.txt', what='character', comment.char = ';')
 
+#------------FUNCIONES DE PUNTUACION POR PALABRAS POSITIVAS Y NEGATIVAS------------#
 #Crear función para obtener puntuaciones
 getScores = function(tweets, pos.words, neg.words){
   results.df = data.frame(matrix(nrow=0,ncol=5))
@@ -149,21 +150,30 @@ getScores = function(tweets, pos.words, neg.words){
     totalPos = sum(pos.match)
     totalNeg = sum(neg.match)
     score = totalPos - totalNeg
-    if(score < 0){
-      polarity = "negative"
+    
+    #Score = {{-5,-4,-3},{-2,-1},{0},{1,2},{3,4,5}}
+    
+    if(score <= -3){
+      category = "very negative"
     }
-    else if(score > 0){
-      polarity = "positive"
+    else if(score < 0 && score > 3){
+      category = "negative"
+    }
+    else if(score == 0){
+      category = "neutral"
+    }
+    else if(score > 0 && score <= 2){
+      category = "positive"
     }
     else{
-      polarity = "neutral"
+      category = "very positive"
     }
     if(length(words) != 0L){
-      results.df[i,]= c(tweet,totalPos,totalNeg,score,polarity)
+      results.df[i,]= c(tweet,totalPos,totalNeg,score,category)
     }
   }
   
-  colnames(results.df) = c("tweet","pos","neg","score","polarity")
+  colnames(results.df) = c("tweet","pos","neg","score","category")
   return(results.df)
 }
 
@@ -172,17 +182,9 @@ iphone.scores = getScores(iphoneCleanedTweets$text, posWords, negWords)
 note.scores = getScores(noteCleanedTweets$text, posWords, negWords)
 pixel.scores = getScores(pixelCleanedTweets$text, posWords, negWords)
 
-#Libreria para Create_Matrix
-install.packages("RTextTools")
-library(RTextTools)
-library(tm)
-source("create_matrix.R")
-source("classify_polarity.R")
-source("classify_emotion.R")
+#------------------------FUNCIONES DE POLARIDAD Y EMOCIONES------------------------#
 
-################################################## MIAS ##################################################
-
-#Funcion para crear la matriz necesaria en getPolarity()
+#Funcion para crear la matriz necesaria en bayesianEmotions() y en bayesianPolarity()
 createMatrix = function(textColumns,language="english", minDocFreq=1, minWordLength=3,weighting=weightTf){
   #Se crea el control para el Corpus
   control = list(language=language,minDocFreq=minDocFreq,minWordLength=minWordLength,weighting=weighting)
@@ -207,7 +209,7 @@ bayesianEmotions = function(tweets,prior=1.0){
   matrix = createMatrix(tweets)
   
   #Leer el documento de emociones
-  lexicon = read.csv(system.file("data/emotions.csv.gz",package="sentiment"),header=FALSE)
+  lexicon = read.csv(file = "emotions.csv",header=FALSE,sep=",")
   
   #Se obtiene una lista con la cantidad de palabras correspondientes a las emociones
   counts = list(anger=length(which(lexicon[,2]=="anger")),disgust=length(which(lexicon[,2]=="disgust")),fear=length(which(lexicon[,2]=="fear")),joy=length(which(lexicon[,2]=="joy")),sadness=length(which(lexicon[,2]=="sadness")),surprise=length(which(lexicon[,2]=="surprise")),total=nrow(lexicon))
@@ -230,6 +232,7 @@ bayesianEmotions = function(tweets,prior=1.0){
           entry = emotions[index,]
           category = as.character(entry[[2]])
           count = counts[[category]]
+          score = 1.0
           score = abs(log(score*prior/count))
           
           #Se asigna su puntuación en la categoría de emociones correspondiente
@@ -268,7 +271,7 @@ bayesianEmotions = function(tweets,prior=1.0){
 bayesianPolarity = function(tweets,pStrong=0.5,pWeak=1.0,prior=1.0){
   matrix = createMatrix(tweets)
   #Leer el documento de subjetividad de palabras
-  lexicon = read.csv(system.file("data/subjectivity.csv.gz",package="sentiment"),header=FALSE)
+  lexicon = read.csv(file = "subjectivity.csv",header=FALSE,sep=",")
   
   #Se obtiene una lista con la cantidad de palabras positivas, negativas, y la suma de dichas palabras
   counts = list(positive=length(which(lexicon[,3]=="positive")),negative=length(which(lexicon[,3]=="negative")),total=nrow(lexicon))
@@ -290,6 +293,7 @@ bayesianPolarity = function(tweets,pStrong=0.5,pWeak=1.0,prior=1.0){
         polarity = as.character(entry[[2]])
         category = as.character(entry[[3]])
         count = counts[[category]]
+        score = pWeak
         score = abs(log(score*prior/count))
       
         #Se asigna su puntuación en la categoría (positivo o negativo) correspondiente
@@ -336,11 +340,13 @@ iphoneEmotions[is.na(iphoneEmotions)] = 'unknown'
 #Obtener la clasificación de los tweets por polaridad
 iphonePolarity.class = bayesianPolarity(iphone.scores$tweet)
 #Se obtiene la lista de la clasificación de polaridad
-iphonePolarity = iphonePolarity.classification[,4]
+iphonePolarity = iphonePolarity.class[,4]
 #Se crea un dataframe con las estadísticas de los tweets
 iphonePolarity = data.frame(text=iphone.scores$tweet, emotion=iphoneEmotions, polarity=iphonePolarity, stringAsFactors=FALSE)
 
+#-----------------------------GRAFICACION DE RESULTADOS----------------------------#
 
+hist(as.numeric(iphone.scores$score))
 
 ################################################################################
 ################################################################################
@@ -351,3 +357,12 @@ iphonePolarity = data.frame(text=iphone.scores$tweet, emotion=iphoneEmotions, po
 
 ###############################################################################
 ###############################################################################
+
+
+
+
+
+
+
+
+
