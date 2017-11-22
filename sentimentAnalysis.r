@@ -157,7 +157,7 @@ getScores = function(tweets, pos.words, neg.words){
     if(score <= -3){
       category = "very negative"
     }
-    else if(score < 0 && score > 3){
+    else if(score > -3 && score < 0){
       category = "negative"
     }
     else if(score == 0){
@@ -364,87 +364,53 @@ pixelPolarity = data.frame(text=pixel.scores$tweet, emotion=pixelEmotions, polar
 
 #-----------------------------GRAFICACION DE RESULTADOS----------------------------#
 
+          #--------------Subjetividad por dispositivo-------------#
 
-#Graficas de Iphone Tweets
+iphone.sub = data.frame(Pos = length(which(iphone.scores$category=="positive")) + length(which(iphone.scores$category=="very positive")), 
+                        Neg = length(which(iphone.scores$category=="negative")) + length(which(iphone.scores$category=="very negative")),
+                        Neutral = length(which(iphone.scores$category=="neutral")))
 
-hist(as.numeric(iphone.scores$neg), col = c("red"), main = "Negative Scores Iphone")
-hist(as.numeric(iphone.scores$pos), col = c("green"), main = "Positive Scores Iphone")
-hist(as.numeric(iphone.scores$score), col=c("cyan"),main = "Scores Iphone")
+note.sub = data.frame(Pos = length(which(note.scores$category=="positive")) + length(which(note.scores$category=="very positive")), 
+                      Neg = length(which(note.scores$category=="negative")) + length(which(note.scores$category=="very negative")),
+                      Neutral = length(which(note.scores$category=="neutral")))
 
-#Graficas de NoteTweets
-hist(as.numeric(note.scores$neg), col = c("red"), main = "Negative Scores Note")
-hist(as.numeric(note.scores$pos), col = c("green"), main = "Positive Scores Note")
-hist(as.numeric(note.scores$score), col = c("cyan"), main = " Scores Note")
+pixel.sub = data.frame(Pos = length(which(pixel.scores$category=="positive")) + length(which(pixel.scores$category=="very positive")), 
+                       Neg = length(which(pixel.scores$category=="negative")) + length(which(pixel.scores$category=="very negative")),
+                       Neutral = length(which(pixel.scores$category=="neutral")))
 
-#Graficas Pixel Tweets
-hist(as.numeric(pixel.scores$neg), col = c("red"), main = "Negative Scores Pixel")
-hist(as.numeric(pixel.scores$pos), col = c("green"), main = "Positive Scores Pixel")
-hist(as.numeric(pixel.scores$score), col = c("cyan"), main = "Scores Pixel")
+results.sub = rbind(iPhoneX = iphone.sub, Note8 = note.sub, Pixel2 = pixel.sub)
+ix = m[1,]
+no = m[2,]
+pi = m[3,]
 
-#Grafica de Pastel Positivos y negativos
+par(fig = c(0.05, 0.35, 0, 0.95), mar = c(5,4,3,0))
+barplot(as.numeric(c(ix$Pos,ix$Neg,ix$Neutral)), names.arg = names(ix), space=c(0.1,1), cex.names = 0.7, xlab="iPhone X", las = 1, col = brewer.pal(3,'Dark2'))
+text(c(1.5,2.6,3.7),c(ix$Pos/2,ix$Neg/2,ix$Neutral/2),c(ix$Pos,ix$Neg,ix$Neutral),cex = 0.7)
 
-etiquetas <-c("Positivos","Muy Positivos","Negativos", "Muy Negativos", "Neutral")
+par(fig = c(0.35, 0.65, 0, 0.95), mar = c(5,4,3,0), new = TRUE)
+barplot(as.numeric(c(no$Pos,no$Neg,no$Neutral)), names.arg = names(no), space=c(0.1,0), cex.names = 0.7, xlab="Note 8", las = 1, col = brewer.pal(3,'Dark2'))
+text(c(0.5,1.6,2.7),c(no$Pos/2,no$Neg/2,no$Neutral/2),c(no$Pos,no$Neg,no$Neutral),cex = 0.7)
 
-#iphone Graph
-iphoneCategoryPositive <- sum(length(which(iphone.scores$category=="positive")) )
-iphoneCategoryVeryPositive <-sum(length(which(iphone.scores$category == "very positive")))
-iphoneCategoryNegative <-  sum(length(which(iphone.scores$category=="negative")))
-iphoneCategoryVeryNegative <- sum(length(which(iphone.scores$category == "very negative")))
-iphoneNeutral <- sum(length(which(iphone.scores$category == "neutral")))
-pieIphone<- c(iphoneCategoryPositive,iphoneCategoryVeryPositive, iphoneCategoryNegative,iphoneCategoryVeryNegative, iphoneNeutral)
-iphonepercen <- sum(pieIphone)
-iphonePercentage<- c((iphoneCategoryPositive*100)/percen,(iphoneCategoryVeryPositive*100)/percen,(iphoneCategoryNegative*100)/percen,(iphoneCategoryVeryNegative*100)/percen,(iphoneNeutral*100)/percen)
+par(fig = c(0.65, 0.95, 0, 0.95), mar = c(5,4,3,0), new = TRUE)
+barplot(as.numeric(c(pi$Pos,pi$Neg,pi$Neutral)), names.arg = names(pi), space=c(0.1,0), cex.names = 0.7, xlab="Pixel 2", las = 1, col = brewer.pal(3,'Dark2'))
+text(c(0.5,1.6,2.7),c(pi$Pos/2,pi$Neg/2,pi$Neutral/2),c(pi$Pos,pi$Neg,pi$Neutral),cex = 0.7)
+title(main = 'Tweets Categorizados por Subjetividad por Dispositivo', outer = TRUE, line = -2)
 
-for(pos in 1:5){
-  #iphonePercentage[pos]<-format(round(iphonePercentage[pos],2))
-  x<- as.numeric(iphonePercentage[pos])
-  x<-format(round(x,1))
-  iphonePercentage[pos]<-paste(x ,"%")
-}
+          #--------Subjetividad por todos los dispositivos--------#
 
-pie(pieIphone,labels= iphonePercentage, col=c("green","cyan","orange","red","yellow"), main="Sentimientos hacia Iphone X")
+mixed.sub = data.frame(Pos = length(which(iphone.scores$category=="positive")) + length(which(iphone.scores$category=="very positive"))
+                       + length(which(note.scores$category=="positive")) + length(which(note.scores$category=="very positive"))
+                       + length(which(pixel.scores$category=="positive")) + length(which(pixel.scores$category=="very positive")), 
+                        Neg = length(which(iphone.scores$category=="negative")) + length(which(iphone.scores$category=="very negative"))
+                       + length(which(note.scores$category=="negative")) + length(which(note.scores$category=="very negative"))
+                       + length(which(pixel.scores$category=="negative")) + length(which(pixel.scores$category=="very negative")),
+                        Neutral = length(which(iphone.scores$category=="neutral"))
+                       + length(which(note.scores$category=="neutral"))
+                       + length(which(pixel.scores$category=="neutral")))
 
-legend("bottomleft",legend= etiquetas,cex = .40,fill = c("green","cyan","orange","red","yellow"))
-
-#Note Graph
-noteCategoryPositive <- sum(length(which(note.scores$category=="positive")) )
-noteCategoryVeryPositive <-sum(length(which(note.scores$category == "very positive")))
-noteCategoryNegative <-  sum(length(which(note.scores$category=="negative")))
-noteCategoryVeryNegative <- sum(length(which(note.scores$category == "very negative")))
-noteeNeutral <- sum(length(which(note.scores$category == "neutral")))
-pieNote<- c(noteCategoryPositive,noteCategoryVeryPositive, noteCategoryNegative,noteCategoryVeryNegative, noteeNeutral)
-Notepercen <- sum(pieNote)
-notePercentage<- c((noteCategoryPositive*100)/Notepercen,(noteCategoryVeryPositive*100)/Notepercen,(noteCategoryNegative*100)/Notepercen,(noteCategoryVeryNegative*100)/Notepercen,(noteeNeutral*100)/Notepercen)
-
-for(pos in 1:5){
-  # iphonePercentage[pos]<-format(round(iphonePercentage[pos],2))
-  x<- as.numeric(notePercentage[pos])
-  x<-format(round(x,1))
-  notePercentage[pos]<-paste(x ,"%")
-}
-
-pie(pieNote,labels= notePercentage, col=c("green","cyan","orange","red","yellow"), main="Sentimientos hacia Note Galaxy 8")
-legend("bottomleft",legend= etiquetas,cex = .40,fill = c("green","cyan","orange","red","yellow"))
-
-#Pixel 2
-pixelCategoryPositive <- sum(length(which(pixel.scores$category=="positive")))
-pixelCategoryVeryPositive <-sum(length(which(pixel.scores$category == "very positive")))
-pixelCategoryNegative <-  sum(length(which(pixel.scores$category=="negative")))
-pixelCategoryVeryNegative <- sum(length(which(pixel.scores$category == "very negative")))
-pixelNeutral <- sum(length(which(pixel.scores$category == "neutral")))
-piepixel<- c(pixelCategoryPositive,pixelCategoryVeryPositive, pixelCategoryNegative,pixelCategoryVeryNegative, pixelNeutral)
-pixelpercen <- sum(piepixel)
-pixelPercentage<- c((pixelCategoryPositive*100)/pixelpercen,(pixelCategoryVeryPositive*100)/pixelpercen,(pixelCategoryNegative*100)/pixelpercen,(pixelCategoryVeryNegative*100)/pixelpercen,(pixelNeutral*100)/pixelpercen)
-
-for(pos in 1:5){
-  # iphonePercentage[pos]<-format(round(iphonePercentage[pos],2))
-  x<- as.numeric(pixelPercentage[pos])
-  x<-format(round(x,1))
-  pixelPercentage[pos]<-paste(x ,"%")
-}
-
-pie(piepixel,labels= notePercentage, col=c("green","cyan","orange","red","yellow"), main="Sentimientos hacia Pixel")
-legend("bottomleft",legend= etiquetas,cex = .40,fill = c("green","cyan","orange","red","yellow"))
+barplot(as.numeric(c(mixed.sub$Pos,mixed.sub$Neg,mixed.sub$Neutral)), names.arg = names(mixed.sub), space=c(0.1,1), cex.names = 0.7, xlab="Categoría", las = 1, col = brewer.pal(3,'Dark2'))
+text(c(1.5,2.6,3.7),c(mixed.sub$Pos/2,mixed.sub$Neg/2,mixed.sub$Neutral/2),c(mixed.sub$Pos,mixed.sub$Neg,mixed.sub$Neutral),cex = 1)
+title(main = 'Tweets Categorizados por Subjetividad de todos los dispositivos', outer = TRUE, line = -2)
 
           #---------------Emociones por dispositivo---------------#
 
@@ -454,11 +420,18 @@ legend("bottomleft",legend= etiquetas,cex = .40,fill = c("green","cyan","orange"
 
           #--------Puntuaciones de tweets por dispositivo---------#
 
-          
+# totalScore = 0
+# for(score in iphone.scores$score){
+#   if(!is.na(score)){
+#     totalScore = totalScore + as.numeric(score)
+#   }
+# }
+# totalScore
+# 
+# sum(as.numeric(iphone.scores$score))     
+
           #---Puntuaciones de tweets por todos los dispositivos---#
 
-
-          #-----------------Frecuencia de palabras----------------#
 
 
           #------------Nube de palabras por emociones-------------#
@@ -511,6 +484,17 @@ title(main = "Nube de palabras de emociones del Pixel 2", outer = TRUE, line = -
 #Todos los dispositivos
 comparison.cloud(mixedCorpus, random.order = FALSE, max.words = 1000, rot.per=.15, colors = brewer.pal(nEmotions, 'Dark2'), scale = c(4,0.5), title.size = 1)
 title(main = "Nube de palabras de emociones de todos los dispositivos", outer = TRUE, line = -0.7)
+
+          #-----------------Frecuencia de palabras----------------#
+
+termsFreq = rowSums(as.matrix(mixedCorpus))
+mostFreq = subset(termsFreq,termsFreq>=50)
+df = data.frame(term = names(mostFreq), freq=mostFreq)
+
+par(mai=c(1,1.5,1,1))
+barplot(mostFreq, xlim=c(0,round(max(mostFreq)/100,0)*100), col = c(brewer.pal(name = 'Dark2',n = 8),brewer.pal(name = 'Paired',n = 12)), horiz = TRUE, las=1, cex.names = 0.5, space = c(0.5,0))
+par(mar = c(5,7,4,2) + 0.1)
+title(main = "Palabras Más Frecuentes por Todos los Dispositivos", ylab = "Palabras", xlab = "Frecuencia")
 
 ################################################################################
 ################################################################################
