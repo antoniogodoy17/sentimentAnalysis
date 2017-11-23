@@ -439,7 +439,7 @@ getTdm = function(tweets,tweetsEmotions){
   wcEmotions.docs = rep('', nEmotions)
   
   #Se separa el texto por emociones
-  for(i in 1:nemo)
+  for(i in 1:nEmotions)
   {
     tmp = tweets$text[tweetsEmotions == wcEmotions[i]]
     wcEmotions.docs[i] = paste(tmp, collapse=' ')
