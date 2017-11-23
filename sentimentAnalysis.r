@@ -362,15 +362,15 @@ pixel.sub = data.frame(Pos = length(which(pixelPolarity.class=="positive")), Neg
 
 #Se grafican las tres figuras  
 par(fig = c(0.05, 0.35, 0, 0.95), mar = c(5,4,3,0))
-barplot(as.numeric(c(iphone.sub$Pos,iphone.sub$Neg,iphone.sub$Neutral)), names.arg = names(iphone.sub), space=c(0.1,1), cex.names = 0.6, xlab="iPhone X", las = 1, col = brewer.pal(3,'Dark2'))
+barplot(as.numeric(c(iphone.sub$Pos,iphone.sub$Neg,iphone.sub$Neutral)), names.arg = names(iphone.sub), space=c(0.1,1), cex.names = 0.5, xlab="iPhone X", ylab="# de Tweets",las = 1, col = brewer.pal(3,'Dark2'))
 text(c(1.5,2.6,3.7),c(iphone.sub$Pos/2,iphone.sub$Neg/2,iphone.sub$Neutral/2),c(iphone.sub$Pos,iphone.sub$Neg,iphone.sub$Neutral),cex = 0.7)
 
 par(fig = c(0.35, 0.65, 0, 0.95), mar = c(5,4,3,0), new = TRUE)
-barplot(as.numeric(c(note.sub$Pos,note.sub$Neg,note.sub$Neutral)), names.arg = names(note.sub), space=c(0.1,0), cex.names = 0.6, xlab="Note 8", las = 1, col = brewer.pal(3,'Dark2'))
+barplot(as.numeric(c(note.sub$Pos,note.sub$Neg,note.sub$Neutral)), names.arg = names(note.sub), space=c(0.1,0), cex.names = 0.5, xlab="Note 8", las = 1, col = brewer.pal(3,'Dark2'))
 text(c(0.5,1.6,2.7),c(note.sub$Pos/2,note.sub$Neg/2,note.sub$Neutral/2),c(note.sub$Pos,note.sub$Neg,note.sub$Neutral),cex = 0.7)
 
 par(fig = c(0.65, 0.95, 0, 0.95), mar = c(5,4,3,0), new = TRUE)
-barplot(as.numeric(c(pixel.sub$Pos,pixel.sub$Neg,pixel.sub$Neutral)), names.arg = names(pixel.sub), space=c(0.1,0), cex.names = 0.6, xlab="Pixel 2", las = 1, col = brewer.pal(3,'Dark2'))
+barplot(as.numeric(c(pixel.sub$Pos,pixel.sub$Neg,pixel.sub$Neutral)), names.arg = names(pixel.sub), space=c(0.1,0), cex.names = 0.5, xlab="Pixel 2", las = 1, col = brewer.pal(3,'Dark2'))
 text(c(0.5,1.6,2.7),c(pixel.sub$Pos/2,pixel.sub$Neg/2,pixel.sub$Neutral/2),c(pixel.sub$Pos,pixel.sub$Neg,pixel.sub$Neutral),cex = 0.7)
 title(main = 'Tweets Categorizados por Subjetividad por Dispositivo', outer = TRUE, line = -2)
 
@@ -381,7 +381,7 @@ mixed.sub = data.frame(Pos = length(which(iphonePolarity.class=="positive")) + l
                         Neutral = length(which(iphonePolarity.class=="neutral")) + length(which(notePolarity.class=="neutral")) + length(which(pixelPolarity.class=="neutral")))
 
 #Se grafica la figura
-barplot(as.numeric(c(mixed.sub$Pos,mixed.sub$Neg,mixed.sub$Neutral)), names.arg = names(mixed.sub), space=c(0.1,1), cex.names = 0.7, xlab="Categoría", las = 1, col = brewer.pal(3,'Dark2'))
+barplot(as.numeric(c(mixed.sub$Pos,mixed.sub$Neg,mixed.sub$Neutral)), names.arg = names(mixed.sub), space=c(0.1,1), cex.names = 0.7, xlab="Categoría", ylab="# de Tweets", las = 1, col = brewer.pal(3,'Dark2'))
 text(c(1.5,2.6,3.7),c(mixed.sub$Pos/2,mixed.sub$Neg/2,mixed.sub$Neutral/2),c(mixed.sub$Pos,mixed.sub$Neg,mixed.sub$Neutral),cex = 1)
 title(main = 'Tweets Categorizados por Subjetividad de Todos los Dispositivos', outer = TRUE, line = -2)
 
@@ -400,7 +400,7 @@ percentages = c(paste(round(iphoneAnger/total*100,2),"%"),paste(round(iphoneDisg
 
 #Se grafica la figura
 pie3D(x=emotionsIphone,labels = percentages, col = brewer.pal(6,'Set1'),main="Distribución de Emociones en el iPhone X (%)", labelcex = 1.1)
-legend("bottomleft", legend = emotions, fill = brewer.pal(6,'Set1'), cex = 0.55)
+legend("bottomleft", legend = emotions, fill = brewer.pal(6,'Set1'), cex = 0.8)
 
 #Se obtiene la cantidad de tweets pertenecientes a cada categoría para el Note 8
 noteAnger = sum(length(which(noteEmotions == "anger")))
@@ -416,7 +416,7 @@ percentages = c(paste(round(noteAnger/total*100,2),"%"),paste(round(noteDisgust/
 
 #Se grafica la figura
 pie3D(emotionsNote, labels = percentages, col = brewer.pal(6,'Set1'),main = "Distribución de Emociones en el Note 8 (%)", labelcex = 1.1) 
-legend("bottomleft", legend = emotions, fill = brewer.pal(6,'Set1'), cex = .55)
+legend("bottomleft", legend = emotions, fill = brewer.pal(6,'Set1'), cex = .8)
 
 #Se obtiene la cantidad de tweets pertenecientes a cada categoría para el Pixel 2
 pixelAnger = sum(length(which(pixelEmotions == "anger")))
@@ -432,7 +432,7 @@ percentages = c(paste(round(pixelAnger/total*100,2),"%"),paste(round(pixelDisgus
 
 #Se grafica la figura
 pie3D(emotionsPixel, labels = percentages, col = brewer.pal(6,'Set1'), main = "Distribución de Emociones en el Pixel 2 (%)", labelcex = 1.1) 
-legend("bottomleft", legend = emotions, fill = brewer.pal(6,'Set1'), cex = .5)
+legend("bottomleft", legend = emotions, fill = brewer.pal(6,'Set1'), cex = .8)
 
           #---------Emociones por todos los dispositivos----------#
 #Se calcula la suma de la cantidad de tweets pertenecientes a cada categoría
@@ -449,10 +449,6 @@ pie3D(devices, labels = percentages, col = brewer.pal(3,'Dark2'), main = "Distri
 legend("bottomleft",legend = c("Positive","Negative","Neutral"), fill = brewer.pal(3,'Dark2'), cex = .8)
 
           #---Puntuaciones de tweets por todos los dispositivos---#
-iphoneScore = sum(as.numeric(!is.na(iphone.scores$score)))
-noteScore = sum(as.numeric(note.scores$score))
-pixelScore = sum(as.numeric(pixel.scores$score))
-
 getAccumulated = function(list){
   accum = c()
   sum = 0
@@ -469,10 +465,10 @@ iphoneAccum = getAccumulated(iphone.scores$score)
 noteAccum = getAccumulated(note.scores$score)
 pixelAccum = getAccumulated(pixel.scores$score)
 
-plot(iphoneAccum,type = "l", ylim = c(min(iphoneAccum,noteAccum,pixelAccum),max(iphoneAccum,noteAccum,pixelAccum)) ,col = brewer.pal(8,'Set1')[3], xlab = "Tweets", ylab = "Accumulated Score", main = "Puntuación Histórica Acumulada por Dispositivo")
+plot(iphoneAccum,type = "l", ylim = c(min(iphoneAccum,noteAccum,pixelAccum),max(iphoneAccum,noteAccum,pixelAccum)) ,col = brewer.pal(8,'Set1')[3], xlab = "# de Tweets", ylab = "Puntuación Acumulada", main = "Puntuación Histórica Acumulada por Dispositivo")
 lines(noteAccum, type = "l", col = brewer.pal(8,'Set1')[4])
 lines(pixelAccum, type = "l", col = brewer.pal(8,'Set1')[1])
-legend(0,1850,c("iPhone X","Note 8","Pixel 2"),lty=c(1), lwd=c(2.5),col = c(brewer.pal(8,'Set1')[3],brewer.pal(8,'Set1')[4],brewer.pal(8,'Set1')[1]))
+legend(0,2900,c("iPhone X","Note 8","Pixel 2"),lty=c(1), lwd=c(2.5),col = c(brewer.pal(8,'Set1')[3],brewer.pal(8,'Set1')[4],brewer.pal(8,'Set1')[1]))
 
           #------------Nube de palabras por emociones-------------#
 
