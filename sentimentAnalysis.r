@@ -377,23 +377,18 @@ note.sub = data.frame(Pos = length(which(note.scores$category=="positive")) + le
 pixel.sub = data.frame(Pos = length(which(pixel.scores$category=="positive")) + length(which(pixel.scores$category=="very positive")), 
                        Neg = length(which(pixel.scores$category=="negative")) + length(which(pixel.scores$category=="very negative")),
                        Neutral = length(which(pixel.scores$category=="neutral")))
-
-results.sub = rbind(iPhoneX = iphone.sub, Note8 = note.sub, Pixel2 = pixel.sub)
-ix = m[1,]
-no = m[2,]
-pi = m[3,]
-
+  
 par(fig = c(0.05, 0.35, 0, 0.95), mar = c(5,4,3,0))
-barplot(as.numeric(c(ix$Pos,ix$Neg,ix$Neutral)), names.arg = names(ix), space=c(0.1,1), cex.names = 0.7, xlab="iPhone X", las = 1, col = brewer.pal(3,'Dark2'))
-text(c(1.5,2.6,3.7),c(ix$Pos/2,ix$Neg/2,ix$Neutral/2),c(ix$Pos,ix$Neg,ix$Neutral),cex = 0.7)
+barplot(as.numeric(c(iphone.sub$Pos,iphone.sub$Neg,iphone.sub$Neutral)), names.arg = names(iphone.sub), space=c(0.1,1), cex.names = 0.7, xlab="iPhone X", las = 1, col = brewer.pal(3,'Dark2'))
+text(c(1.5,2.6,3.7),c(iphone.sub$Pos/2,iphone.sub$Neg/2,iphone.sub$Neutral/2),c(iphone.sub$Pos,iphone.sub$Neg,iphone.sub$Neutral),cex = 0.7)
 
 par(fig = c(0.35, 0.65, 0, 0.95), mar = c(5,4,3,0), new = TRUE)
-barplot(as.numeric(c(no$Pos,no$Neg,no$Neutral)), names.arg = names(no), space=c(0.1,0), cex.names = 0.7, xlab="Note 8", las = 1, col = brewer.pal(3,'Dark2'))
-text(c(0.5,1.6,2.7),c(no$Pos/2,no$Neg/2,no$Neutral/2),c(no$Pos,no$Neg,no$Neutral),cex = 0.7)
+barplot(as.numeric(c(note.sub$Pos,note.sub$Neg,note.sub$Neutral)), names.arg = names(note.sub), space=c(0.1,0), cex.names = 0.7, xlab="Note 8", las = 1, col = brewer.pal(3,'Dark2'))
+text(c(0.5,1.6,2.7),c(note.sub$Pos/2,note.sub$Neg/2,note.sub$Neutral/2),c(note.sub$Pos,note.sub$Neg,note.sub$Neutral),cex = 0.7)
 
 par(fig = c(0.65, 0.95, 0, 0.95), mar = c(5,4,3,0), new = TRUE)
-barplot(as.numeric(c(pi$Pos,pi$Neg,pi$Neutral)), names.arg = names(pi), space=c(0.1,0), cex.names = 0.7, xlab="Pixel 2", las = 1, col = brewer.pal(3,'Dark2'))
-text(c(0.5,1.6,2.7),c(pi$Pos/2,pi$Neg/2,pi$Neutral/2),c(pi$Pos,pi$Neg,pi$Neutral),cex = 0.7)
+barplot(as.numeric(c(pixel.sub$Pos,pixel.sub$Neg,pixel.sub$Neutral)), names.arg = names(pixel.sub), space=c(0.1,0), cex.names = 0.7, xlab="Pixel 2", las = 1, col = brewer.pal(3,'Dark2'))
+text(c(0.5,1.6,2.7),c(pixel.sub$Pos/2,pixel.sub$Neg/2,pixel.sub$Neutral/2),c(pixel.sub$Pos,pixel.sub$Neg,pixel.sub$Neutral),cex = 0.7)
 title(main = 'Tweets Categorizados por Subjetividad por Dispositivo', outer = TRUE, line = -2)
 
           #--------Subjetividad por todos los dispositivos--------#
